@@ -7,7 +7,7 @@ write.avro(x, file, name = "x", namespace = NULL, row.names = T,
   codec = c("null", "deflate", "snappy"), unflatten = TRUE)
 }
 \arguments{
-\item{x}{a data.frame value}
+\item{x}{a data.table value}
 
 \item{file}{an avro file path}
 

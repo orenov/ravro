@@ -21,10 +21,10 @@ test_that("t.list works", {
 
 test_that("unflatten iris works",{
   unflat_iris <- with(iris,
-                    structure(list(Sepal=data.frame(Length=Sepal.Length,Width=Sepal.Width),
-                                   Petal=data.frame(Length=Petal.Length,Width=Petal.Width),
+                    structure(list(Sepal=data.table(Length=Sepal.Length,Width=Sepal.Width),
+                                   Petal=data.table(Length=Petal.Length,Width=Petal.Width),
                                    Species=Species),
-                              class="data.frame",
+                              class="data.table",
                               row.names=attr(iris,"row.names")))
   expect_equal(ravro:::unflatten(iris),unflat_iris)
 })

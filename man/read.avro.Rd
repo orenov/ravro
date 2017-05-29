@@ -31,7 +31,7 @@ Avro types will be converted to R object with the following mapping:
 \item \code{float},\code{double} -> \code{numeric}
 \item \code{bytes},\code{fixed} -> \code{character} (\code{charToRaw} allows conversion to vector of type \code{raw})
 \item \code{string} -> \code{character}
-\item \code{record} -> \code{data.frame} (see below)
+\item \code{record} -> \code{data.table} (see below)
 \item \code{enum} -> \code{factor}
 \item \code{array} -> \code{list}
 \item \code{map} ->  named \code{list}
@@ -96,7 +96,7 @@ write.avro(iris,iris_avro_path,unflatten=TRUE)
 
 # Importing flattened data
 str(read.avro(iris_avro_path,flatten=TRUE))
-#'data.frame':  150 obs. of  5 variables:
+#'data.table':  150 obs. of  5 variables:
 #  $ Sepal.Length: num  5.1 4.9 4.7 4.6 5 5.4 4.6 5 4.4 4.9 ...
 #  $ Sepal.Width : num  3.5 3 3.2 3.1 3.6 3.9 3.4 3.4 2.9 3.1 ...
 #  $ Petal.Length: num  1.4 1.4 1.3 1.5 1.4 1.7 1.4 1.5 1.4 1.5 ...
@@ -105,11 +105,11 @@ str(read.avro(iris_avro_path,flatten=TRUE))
 
 # Importing unflattened data
 str(read.avro(iris_avro_path,flatten=FALSE))
-#'data.frame':  150 obs. of  3 variables:
-# $ Sepal  :'data.frame':	150 obs. of  2 variables:
+#'data.table':  150 obs. of  3 variables:
+# $ Sepal  :'data.table':	150 obs. of  2 variables:
 #   ..$ Length: num  5.1 4.9 4.7 4.6 5 5.4 4.6 5 4.4 4.9 ...
 # ..$ Width : num  3.5 3 3.2 3.1 3.6 3.9 3.4 3.4 2.9 3.1 ...
-# $ Petal  :'data.frame':	150 obs. of  2 variables:
+# $ Petal  :'data.table':	150 obs. of  2 variables:
 #   ..$ Length: num  1.4 1.4 1.3 1.5 1.4 1.7 1.4 1.5 1.4 1.5 ...
 # ..$ Width : num  0.2 0.2 0.2 0.2 0.2 0.4 0.3 0.2 0.2 0.1 ...
 # $ Species: Factor w/ 3 levels "setosa","versicolor",..: 1 1 1 1 1 1 1 1 1 1 ...

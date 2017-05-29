@@ -110,7 +110,7 @@ avro_make_type <- function(x){
            NULL="null",
            stop("Unsupported atomic type: ",class(x)))
   }else if(is.list(x)){
-    if (is.data.frame(x)){
+    if (is.data.table(x)){
       "record"
     }else{
       if (!is.null(names(x))){
@@ -119,12 +119,12 @@ avro_make_type <- function(x){
         warning("Non-null names attribute for list datum: ",paste(names(x),collapse=", "))
       }
       
-      if (all(sapply(x,function(xi){!is.data.frame(xi) && 
+      if (all(sapply(x,function(xi){!is.data.table(xi) && 
                                       !is.null(names(xi)) && 
                                       all(!is.na(names(xi)))}))){
         # if the values are not data frames and they are list/vectors with names
         "map"
-      }else if (all(sapply(x,function(xi)is.data.frame(xi) || is.null(names(xi))))){
+      }else if (all(sapply(x,function(xi)is.data.table(xi) || is.null(names(xi))))){
         "array"
       }else {
         # This could lead to duplicate names and ambiguity as to whether
@@ -141,7 +141,7 @@ avro_make_type <- function(x){
 #' 
 #' Create an Avro schema object for an R value
 #' 
-#' Create an Avro schema and convert an R \code{data.frame} value into a list of data elements.
+#' Create an Avro schema and convert an R \code{data.table} value into a list of data elements.
 #' 
 #' Optional \code{name} and \code{namespace} arguments can be used to specify the top-level Avro 
 #' element \code{name} and \code{namespace}.
@@ -267,7 +267,7 @@ avro_make_data <- function(x,name=NULL,namespace=NULL,
     # Get a union of all types contained in the list of lists
     # Add "null", since list elements can be NULL
     x_avro <- lapply(x,function(xi){
-      if (is.data.frame(xi)){
+      if (is.data.table(xi)){
         if (is.null(name)){
           stop("Avro type \"",xtype,"\" must be named.")
         }
@@ -361,7 +361,7 @@ make_avro_name <- function(x){
 #' If \code{unflatten=FALSE}, any appearances of "." in the column names will be replaced with
 #' "_" in order to create valid Avro Names.
 #'
-#' @param x a data.frame value
+#' @param x a data.table value
 #' @param file an avro file path
 #' @param name a character value indicating the Avro "name" for the top-level schema
 #' @param namespace a character value indicating the Avro "namespace" for the top-level schema
@@ -376,7 +376,7 @@ write.avro <- function(x,file,name="x",namespace=NULL,
                        row.names=T,
                        codec=c("null","deflate","snappy"),
                        unflatten=TRUE){
-  if (!is.data.frame(x)){
+  if (!is.data.table(x)){
     if (is.matrix(x)){
       stop("Unsupported type: matrix")
     }

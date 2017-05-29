@@ -120,30 +120,12 @@ parse_avro.record <- function(x,schema,flatten=T,...){
   fields <- mapply(parse_avro,x_df,schema$fields,
                    MoreArgs=list(flatten=flatten,...),SIMPLIFY=F)
   names(fields) <- sapply(schema$fields,`[[`,"name")
-  x_df <- structure(# Force it to a dataframe without any checking
-    fields, class="data.frame",row.names=row_names)
-  if (flatten){
-    x_df <- flatten(x_df)
-  }
+  x_df <- as.data.table(fields)#structure(fields, class="data.table",row.names=row_names)
   if (is_empty){
     x_df[-1,]
   }else {
     x_df
   }
-}
-
-parse_avro.array <- function(x,schema,simplify=F,encoded_unions=T,
-                             type=c("map","array"),
-                             ...){
-  schema_data <- parse_avro_schema(
-    if (type=="array")
-      schema$items
-    else 
-      schema$values)
-  
-  # "parse" each value, since each value is itself an "array"/list
-  sapply(x,parse_avro,schema=schema_data$schema,simplify=simplify,
-         encoded_unions=encoded_unions,...)
 }
 
 parse_avro.enum <- function(x,schema,...){
@@ -217,8 +199,7 @@ parse_avro_schema <- function(schema){
 ## @seealso \code{\link{fromJSON}}, \code{\link{integer64}}
 ## @references Apache Avro 1.7.6 Specification. \url{http://avro.apache.org/docs/1.7.6/spec.html}.
 #' @import bit64
-parse_avro <- function(x,schema,flatten=T,simplify=F,encoded_unions=T,
-                       namespace=NULL){
+parse_avro <- function(x,schema,flatten=T,simplify=F,encoded_unions=T,namespace=NULL){
   schema_data <- parse_avro_schema(schema)
   schema <- schema_data$schema
   xtype <- schema_data$type
@@ -267,14 +248,8 @@ parse_avro <- function(x,schema,flatten=T,simplify=F,encoded_unions=T,
          record=parse_avro.record(x,schema,flatten=flatten,simplify=simplify, 
                                   encoded_unions = encoded_unions,
                                   namespace=namespace),
-         array=parse_avro.array(x,schema,flatten=flatten,simplify=simplify,
-                                encoded_unions=encoded_unions,
-                                type="array",
-                                namespace=namespace),
-         map=parse_avro.array(x,schema,flatten=flatten,simplify=simplify,
-                       encoded_unions=encoded_unions,
-                       type="map",
-                       namespace=namespace),
+         array=sapply(x, function(x) {paste0(x, collapse = ',')}),
+         map=sapply(x, function(x) {paste0(x, collapse = ',')}),
          float=as.numeric(unlist(x)),
          double=as.numeric(unlist(x)),
          long=bit64::as.integer64(unlist(x)),
@@ -332,7 +307,7 @@ parse_avro <- function(x,schema,flatten=T,simplify=F,encoded_unions=T,
 #' \item \code{float},\code{double} -> \code{numeric}
 #' \item \code{bytes},\code{fixed} -> \code{character} (\code{charToRaw} allows conversion to vector of type \code{raw}) 
 #' \item \code{string} -> \code{character}
-#' \item \code{record} -> \code{data.frame} (see below)
+#' \item \code{record} -> \code{data.table} (see below)
 #' \item \code{enum} -> \code{factor}
 #' \item \code{array} -> \code{list}
 #' \item \code{map} ->  named \code{list}
@@ -380,7 +355,7 @@ parse_avro <- function(x,schema,flatten=T,simplify=F,encoded_unions=T,
 #' 
 #' # Importing flattened data
 #' str(read.avro(iris_avro_path,flatten=TRUE))
-#' #'data.frame':  150 obs. of  5 variables:
+#' #'data.table':  150 obs. of  5 variables:
 #' #  $ Sepal.Length: num  5.1 4.9 4.7 4.6 5 5.4 4.6 5 4.4 4.9 ...
 #' #  $ Sepal.Width : num  3.5 3 3.2 3.1 3.6 3.9 3.4 3.4 2.9 3.1 ...
 #' #  $ Petal.Length: num  1.4 1.4 1.3 1.5 1.4 1.7 1.4 1.5 1.4 1.5 ...
@@ -389,11 +364,11 @@ parse_avro <- function(x,schema,flatten=T,simplify=F,encoded_unions=T,
 #'  
 #' # Importing unflattened data
 #' str(read.avro(iris_avro_path,flatten=FALSE))
-#' #'data.frame':  150 obs. of  3 variables:
-#' # $ Sepal  :'data.frame':	150 obs. of  2 variables:
+#' #'data.table':  150 obs. of  3 variables:
+#' # $ Sepal  :'data.table':	150 obs. of  2 variables:
 #' #   ..$ Length: num  5.1 4.9 4.7 4.6 5 5.4 4.6 5 4.4 4.9 ...
 #' # ..$ Width : num  3.5 3 3.2 3.1 3.6 3.9 3.4 3.4 2.9 3.1 ...
-#' # $ Petal  :'data.frame':	150 obs. of  2 variables:
+#' # $ Petal  :'data.table':	150 obs. of  2 variables:
 #' #   ..$ Length: num  1.4 1.4 1.3 1.5 1.4 1.7 1.4 1.5 1.4 1.5 ...
 #' # ..$ Width : num  0.2 0.2 0.2 0.2 0.2 0.4 0.3 0.2 0.2 0.1 ...
 #' # $ Species: Factor w/ 3 levels "setosa","versicolor",..: 1 1 1 1 1 1 1 1 1 1 ...
@@ -427,12 +402,11 @@ read.avro <- function(file,n=-1L,flatten=T,simplify=F,buffer.length=10000){
     buffer_x <- parse_avro(
       fromJSON(paste0("[",paste0(buffer,collapse=","),"]")),
       schema=schema,flatten=T,simplify=simplify)
-    
     if (is.null(x)){
       x <- buffer_x
-    }else {
-      if (is.data.frame(x)){
-        x <- rbind(x,buffer_x)
+    } else {
+      if (is.data.table(x)){
+        x <- data.table::rbind(x,buffer_x)
       }else {
         x <- c(x,buffer_x)
       }

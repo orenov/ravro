@@ -34,7 +34,7 @@ while(total_time < max_time){
 }
 
 if (require(ggplot2)){
-  ggplot(data.frame(time=runtime_vec,n=n_vec),aes(x=n,y=time)) + geom_line()
+  ggplot(data.table(time=runtime_vec,n=n_vec),aes(x=n,y=time)) + geom_line()
   ggsave("ravro_runtime_performance.png")
 }else {
   png("ravro_runtime_performance.png")

@@ -19,7 +19,7 @@ avro_make_schema(x, name = NULL, namespace = NULL, unflatten = F,
 Create an Avro schema object for an R value
 }
 \details{
-Create an Avro schema and convert an R \code{data.frame} value into a list of data elements.
+Create an Avro schema and convert an R \code{data.table} value into a list of data elements.
 
 Optional \code{name} and \code{namespace} arguments can be used to specify the top-level Avro
 element \code{name} and \code{namespace}.

@@ -31,13 +31,13 @@ t.list  <- function(x) {
     }
 }
 
-## Takes a data.frame with potentially "nested" data.frame columns
+## Takes a data.table with potentially "nested" data.table columns
 ## and flattens it
 flatten <- function(x){
     structure(do.call(c,mapply(function(xj,xjname)
-      # If it's a dataframe/Avro "record"
+      # If it's a datatable/Avro "record"
       # "flatten" it
-      if(is.data.frame(xj)){
+      if(is.data.table(xj)){
         xj <- flatten(xj)
         names(xj) <- 
           paste0(xjname,".",names(xj))
@@ -55,11 +55,11 @@ flatten <- function(x){
       names(x),
       SIMPLIFY=F,
       USE.NAMES=F)),
-      class="data.frame",row.names=attr(x,"row.names"))
+      class="data.table",row.names=attr(x,"row.names"))
 }
 
-## Takes a data.frame with "." names and unflattens it 
-## so that it has nested data.frame columns
+## Takes a data.table with "." names and unflattens it 
+## so that it has nested data.table columns
 unflatten <- function(x){
   xnames <- names(x)
   unflat_index <- which(grepl(".",xnames,fixed=T))
@@ -74,7 +74,7 @@ unflatten <- function(x){
       nested_names <- substring(xnames[original_names],nchar(record)+2L)
       xi <- structure(x[original_names],
                 names=nested_names,
-                class="data.frame",
+                class="data.table",
                 row.names=attr(x,"row.names"))
       unflatten(xi)
     })

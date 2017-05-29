@@ -16,3 +16,6 @@ ravro.Rproj
 rmr-*
 
 Rprof.out
+
+.Rbuildignore
+inst/java/.t.crc
