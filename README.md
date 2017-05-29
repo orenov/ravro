@@ -1,4 +1,4 @@
-ravro
+R Packages
 ============
 
-A package that adds the ability to read and write avro files from local and HDFS file system and adds an avro input format for rmr2
+This directory will contain to-be-written R packages.
